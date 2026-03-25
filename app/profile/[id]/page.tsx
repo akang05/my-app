@@ -14,7 +14,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
           You are currently viewing the detailed profile for:
         </p>
         <p className="text-4xl font-mono font-bold text-blue-600 mt-2">
-          User ID: {id}
+          User: {id}
         </p>
       </div>
       
