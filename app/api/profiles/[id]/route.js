@@ -1,44 +1,50 @@
-let profiles = [
-  { id: 1, name: "Ava Lee", major: "CS", year: 2, gpa: 3.6 },
-  { id: 2, name: "Ben Park", major: "CGT", year: 3, gpa: 3.2 },
-];
-export async function GET(request, { params }) {
-  const { id } = await params;
-  // Find profile by id
-  const profile = profiles.find((p) => p.id === Number(id));
+import { prisma } from "@/lib/db";
 
-  if (!profile) {
-    return Response.json({ error: "Profile not found" }, { status: 404 });
-  }
-  return Response.json(profile, { status: 200 });
+export async function GET(request, { params }) {
+    try {
+        const { id } = await params;
+        const profile = await prisma.profile.findUnique({
+            where: { id: parseInt(id) },
+        });
+
+        if (!profile) {
+            return Response.json({ error: 'Profile not found' }, { status: 404 });
+        }
+        return Response.json(profile, { status: 200 });
+    } catch (error) {
+        return Response.json({ error: 'Failed to fetch' }, { status: 500 });
+    }
 }
 
-export async function PATCH(request, { params }) {
-  const updates = await request.json();
-  const { id } = await params;
-  const index = profiles.findIndex((p) => p.id === Number(id));
+export async function PUT(request, { params }) {
+    try {
+        const { id } = await params;
+        const body = await request.json();
 
-  if (index === -1) {
-    return Response.json({ error: "Profile not found" }, { status: 404 });
-  }
+        const updated = await prisma.profile.update({
+            where: { id: parseInt(id) },
+            data: {
+                name: body.name,
+                major: body.major,
+                year: parseInt(body.year),
+                gpa: parseFloat(body.gpa),
+            },
+        });
 
-  // Validation for year or gpa
-  if (updates.year && (updates.year < 1 || updates.year > 4)) {
-    return Response.json({ error: "Invalid year" }, { status: 400 });
-  }
-
-  profiles[index] = { ...profiles[index], ...updates, id: Number(id) };
-  return Response.json(profiles[index], { status: 200 });
+        return Response.json(updated, { status: 200 });
+    } catch (error) {
+        return Response.json({ error: 'Update failed' }, { status: 500 });
+    }
 }
 
 export async function DELETE(request, { params }) {
-  const { id } = await params; // Get id from request
-  const index = profiles.findIndex((p) => p.id === Number(id));
-
-  if (index === -1) {
-    return Response.json({ error: "Profile not found" }, { status: 404 });
-  }
-
-  profiles.splice(index, 1);
-  return Response.json({ message: "Profile deleted" }, { status: 200 });
+    try {
+        const { id } = await params;
+        await prisma.profile.delete({
+            where: { id: parseInt(id) },
+        });
+        return Response.json({ message: 'Deleted successfully' }, { status: 200 });
+    } catch (error) {
+        return Response.json({ error: 'Delete failed' }, { status: 500 });
+    }
 }
