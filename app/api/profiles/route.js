@@ -1,29 +1,21 @@
 import { prisma } from "@/lib/db";
 
-export async function GET(request, { params }) {
+// GET all profiles
+export async function GET() {
     try {
-        const { id } = await params;
-        const profile = await prisma.profile.findUnique({
-            where: { id: parseInt(id) },
-        });
-
-        if (!profile) {
-            return Response.json({ error: 'Profile not found' }, { status: 404 });
-        }
-
-        return Response.json(profile, { status: 200 });
+        const profiles = await prisma.profile.findMany();
+        return Response.json(profiles, { status: 200 });
     } catch (error) {
-        return Response.json({ error: 'Failed to fetch' }, { status: 500 });
+        return Response.json({ error: "Failed to fetch profiles" }, { status: 500 });
     }
 }
 
-export async function PUT(request, { params }) {
+// POST a new profile (Add Student)
+export async function POST(request) {
     try {
-        const { id } = await params;
-        const body = await request.json(); // Using JSON for simplicity
-
-        const updated = await prisma.profile.update({
-            where: { id: parseInt(id) },
+        const body = await request.json();
+        
+        const newProfile = await prisma.profile.create({
             data: {
                 name: body.name,
                 major: body.major,
@@ -32,20 +24,9 @@ export async function PUT(request, { params }) {
             },
         });
 
-        return Response.json(updated, { status: 200 });
+        return Response.json(newProfile, { status: 201 });
     } catch (error) {
-        return Response.json({ error: 'Update failed' }, { status: 500 });
-    }
-}
-
-export async function DELETE(request, { params }) {
-    try {
-        const { id } = await params;
-        await prisma.profile.delete({
-            where: { id: parseInt(id) },
-        });
-        return Response.json({ message: 'Deleted' }, { status: 200 });
-    } catch (error) {
-        return Response.json({ error: 'Delete failed' }, { status: 500 });
+        console.error("Post Error:", error);
+        return Response.json({ error: "Failed to create profile" }, { status: 500 });
     }
 }
