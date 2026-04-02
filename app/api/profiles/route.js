@@ -1,51 +1,21 @@
-let profiles = [
-  { id: 1, name: "Ava Lee", major: "CS", year: 2, gpa: 3.6 },
-  { id: 2, name: "Ben Park", major: "CGT", year: 3, gpa: 3.2 },
-];
+import { prisma } from '@/lib/db';
+import { NextResponse } from 'next/server';
 
 export async function GET(request) {
-  const searchParams = request.nextUrl.searchParams;
-  const year = searchParams.get("year") || "";
-  const name = searchParams.get("name") || "";
-  const major = searchParams.get("major") || "";
+  const { searchParams } = new URL(request.url);
+  const major = searchParams.get('major');
 
-  let filteredProfiles = [...profiles];
-
-  if (year) {
-    filteredProfiles = filteredProfiles.filter((p) => p.year === Number(year));
-  }
-  if (name) {
-    filteredProfiles = filteredProfiles.filter((p) => p.name.toLowerCase().includes(name.toLowerCase()));
-  }
-  if (major) {
-    filteredProfiles = filteredProfiles.filter((p) => p.major.toLowerCase() === major.toLowerCase());
-  }
-
-  return Response.json(filteredProfiles, { status: 200 });
-}
-
-export async function POST(request) {
   try {
-    const newProfile = await request.json();
-
-    if (!newProfile.major || typeof newProfile.major !== "string") {
-      return Response.json({ error: "Invalid major" }, { status: 400 });
-    }
-    if (!newProfile.name || typeof newProfile.name !== "string") {
-      return Response.json({ error: "Invalid name" }, { status: 400 });
-    }
-
-    const createdProfile = {
-      id: Date.now(),
-      name: newProfile.name.trim(),
-      major: newProfile.major,
-      year: Number(newProfile.year),
-      gpa: Number(newProfile.gpa),
-    };
-
-    profiles.push(createdProfile);
-    return Response.json(createdProfile, { status: 201 });
+    const profiles = await prisma.profile.findMany({
+      where: major ? { 
+        major: {
+          equals: major,
+          mode: 'insensitive' 
+        } 
+      } : {},
+    });
+    return NextResponse.json(profiles);
   } catch (error) {
-    return Response.json({ error: "Bad request" }, { status: 400 });
+    return NextResponse.json({ error: "Database connection failed" }, { status: 500 });
   }
 }
