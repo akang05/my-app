@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { prisma } from "@/lib/db";
+import prisma from "@/lib/db";
 
 export default async function ProfileDetailPage({ params }) {
   // 1. Get the ID from the URL
