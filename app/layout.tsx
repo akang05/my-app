@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import NavBar from "../components/NavBar";
+import SessionProvider from "@/components/SessionProvider"; // Import the provider you made in Step 12
 
 export const metadata: Metadata = {
   title: "Alvin's Profile Project",
@@ -15,8 +16,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased">
-        <NavBar />
-        {children} {/* This is where page.tsx content will show up */}
+        {/* Wrap everything in the SessionProvider */}
+        <SessionProvider>
+          <NavBar />
+          <main>
+            {children}
+          </main>
+        </SessionProvider>
       </body>
     </html>
   );
